@@ -1,4 +1,10 @@
-import { db } from "./firebase.js";
+import { auth, db } from "./firebase.js";
+
+import {
+  signInWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 import {
   collection,
@@ -6,34 +12,43 @@ import {
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-const form = document.getElementById("addForm");
+const loginBox = document.getElementById("loginBox");
+const panel = document.getElementById("panel");
 
-form.addEventListener("submit", async (e) => {
-  e.preventDefault();
-
-  const name = document.getElementById("name").value.trim();
-  const address = document.getElementById("address").value.trim();
-  const lat = parseFloat(document.getElementById("lat").value);
-  const lng = parseFloat(document.getElementById("lng").value);
-
-  if (!name || !address || isNaN(lat) || isNaN(lng)) {
-    alert("সব তথ্য সঠিকভাবে দিন");
-    return;
-  }
+window.login = async () => {
+  const email = email.value;
+  const password = password.value;
 
   try {
-    await addDoc(collection(db, "points"), {
-      name,
-      address,
-      lat,
-      lng,
-      approved: true,
-      createdAt: serverTimestamp()
-    });
+    await signInWithEmailAndPassword(auth, email, password);
+  } catch (e) {
+    alert("❌ Login failed");
+  }
+};
 
-    alert("✅ Biriyani point যোগ হয়েছে");
-    form.reset();
-  } catch (err) {
-    alert("❌ Error: " + err.message);
+window.logout = async () => {
+  await signOut(auth);
+};
+
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    loginBox.style.display = "none";
+    panel.style.display = "block";
+  } else {
+    loginBox.style.display = "block";
+    panel.style.display = "none";
   }
 });
+
+window.addPoint = async () => {
+  await addDoc(collection(db, "points"), {
+    name: name.value,
+    address: address.value,
+    lat: parseFloat(lat.value),
+    lng: parseFloat(lng.value),
+    approved: true,
+    createdAt: serverTimestamp()
+  });
+
+  alert("✅ Biriyani Point Added");
+};
