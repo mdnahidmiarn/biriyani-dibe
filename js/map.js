@@ -1,79 +1,80 @@
-// js/map.js
-
 import { db } from "./firebase.js";
 import {
   collection,
   getDocs,
-  addDoc,
-  serverTimestamp
+  query,
+  where
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// ================= MAP INIT =================
-let map = L.map("map").setView([23.8103, 90.4125], 12);
+let map;
+let userLat, userLng;
+let markers = [];
+
+map = L.map("map").setView([23.8103, 90.4125], 12);
 
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
   attribution: "© OpenStreetMap"
 }).addTo(map);
 
-let userMarker = null;
-
-// ================= USER LOCATION =================
-window.getMyLocation = function () {
-  if (!navigator.geolocation) {
-    alert("Geolocation সাপোর্ট করে না");
-    return;
-  }
-
-  navigator.geolocation.getCurrentPosition(
-    (pos) => {
-      const lat = pos.coords.latitude;
-      const lng = pos.coords.longitude;
-
-      if (userMarker) map.removeLayer(userMarker);
-
-      userMarker = L.marker([lat, lng])
-        .addTo(map)
-        .bindPopup("📍 আপনি এখানে আছেন")
-        .openPopup();
-
-      map.setView([lat, lng], 15);
-    },
-    () => alert("লোকেশন পাওয়া যায়নি")
-  );
-};
-
-// ================= LOAD BIRIYANI POINTS =================
-async function loadPoints() {
-  const snap = await getDocs(collection(db, "points"));
-
-  snap.forEach((doc) => {
-    const data = doc.data();
-
-    const marker = L.marker([data.lat, data.lng]).addTo(map);
-
-    marker.bindPopup(`
-      <b>🍛 ${data.name}</b><br>
-      এলাকা: ${data.area}<br><br>
-      <button onclick="reportPoint('${doc.id}')">
-        🚩 Report
-      </button>
-    `);
-  });
+// distance calculation (km)
+function distance(lat1, lon1, lat2, lon2) {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(lat1 * Math.PI / 180) *
+      Math.cos(lat2 * Math.PI / 180) *
+      Math.sin(dLon / 2) ** 2;
+  return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
 }
 
-loadPoints();
+window.getMyLocation = () => {
+  navigator.geolocation.getCurrentPosition(async (pos) => {
+    userLat = pos.coords.latitude;
+    userLng = pos.coords.longitude;
 
-// ================= REPORT FUNCTION =================
-window.reportPoint = async function (pointId) {
-  const reason = prompt("রিপোর্ট কারণ লিখুন:");
+    map.setView([userLat, userLng], 14);
 
-  if (!reason) return;
+    L.marker([userLat, userLng])
+      .addTo(map)
+      .bindPopup("📍 আপনি এখানে")
+      .openPopup();
 
-  await addDoc(collection(db, "reports"), {
-    pointId: pointId,
-    reason: reason,
-    time: serverTimestamp()
+    loadNearbyPoints();
   });
-
-  alert("✅ রিপোর্ট পাঠানো হয়েছে");
 };
+
+async function loadNearbyPoints() {
+  const list = document.getElementById("list");
+  list.innerHTML = "";
+
+  const q = query(
+    collection(db, "points"),
+    where("approved", "==", true)
+  );
+
+  const snap = await getDocs(q);
+
+  snap.forEach((doc) => {
+    const d = doc.data();
+    const km = distance(userLat, userLng, d.lat, d.lng);
+
+    if (km <= 5) {
+      const m = L.marker([d.lat, d.lng])
+        .addTo(map)
+        .bindPopup(`🍛 ${d.name}<br>${d.address}<br>${km.toFixed(2)} km`);
+
+      markers.push(m);
+
+      const div = document.createElement("div");
+      div.className = "card";
+      div.innerHTML = `
+        <b>${d.name}</b><br>
+        ${d.address}<br>
+        📏 ${km.toFixed(2)} km দূরে
+      `;
+      list.appendChild(div);
+    }
+  });
+}
