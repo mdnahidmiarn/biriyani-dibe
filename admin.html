@@ -3,52 +3,32 @@
 <head>
   <meta charset="UTF-8" />
   <title>Admin Panel | Biriyani Dibe</title>
-
   <style>
-    body {
-      font-family: Arial;
-      background: #f7f7f7;
-      padding: 20px;
-    }
-    h2 {
-      text-align: center;
-    }
-    form {
-      max-width: 400px;
-      margin: auto;
-      background: #fff;
-      padding: 20px;
-      border-radius: 8px;
-    }
-    input, button {
-      width: 100%;
-      padding: 10px;
-      margin: 8px 0;
-    }
-    button {
-      background: #ff6b00;
-      color: #fff;
-      border: none;
-      cursor: pointer;
-    }
-    button:hover {
-      background: #e65c00;
-    }
+    body { font-family: Arial; background:#f4f4f4; padding:20px; }
+    .box { max-width:400px; margin:auto; background:#fff; padding:20px; border-radius:8px; }
+    input, button { width:100%; padding:10px; margin:8px 0; }
+    button { background:#ff6b00; color:#fff; border:none; cursor:pointer; }
+    #panel { display:none; }
   </style>
 </head>
-
 <body>
 
-<h2>🍛 Admin – নতুন বিরিয়ানি পয়েন্ট যোগ</h2>
+<div class="box" id="loginBox">
+  <h3>🔐 Admin Login</h3>
+  <input type="email" id="email" placeholder="Admin Email">
+  <input type="password" id="password" placeholder="Password">
+  <button onclick="login()">Login</button>
+</div>
 
-<form id="addForm">
-  <input type="text" id="name" placeholder="দোকানের নাম" required />
-  <input type="text" id="address" placeholder="ঠিকানা" required />
-  <input type="number" id="lat" placeholder="Latitude" step="any" required />
-  <input type="number" id="lng" placeholder="Longitude" step="any" required />
-
-  <button type="submit">➕ Add Biriyani Point</button>
-</form>
+<div class="box" id="panel">
+  <h3>🍛 নতুন বিরিয়ানি পয়েন্ট</h3>
+  <input id="name" placeholder="দোকানের নাম">
+  <input id="address" placeholder="ঠিকানা">
+  <input id="lat" placeholder="Latitude">
+  <input id="lng" placeholder="Longitude">
+  <button onclick="addPoint()">➕ Add Point</button>
+  <button onclick="logout()">Logout</button>
+</div>
 
 <script type="module" src="js/admin.js"></script>
 </body>
