@@ -1,100 +1,37 @@
 <!DOCTYPE html>
 <html lang="bn">
 <head>
-  <meta charset="UTF-8" />
-  <title>Biriyani Dibe</title>
+  <meta charset="UTF-8">
+  <title>কাছাকাছি বিরিয়ানি পয়েন্ট</title>
 
-  <!-- Leaflet CSS -->
   <link
     rel="stylesheet"
     href="https://unpkg.com/leaflet/dist/leaflet.css"
   />
 
   <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #ffffff;
-    }
-
-    h2 {
-      text-align: center;
-      margin: 12px 0;
-    }
-
-    .btn-wrap {
-      text-align: center;
-      margin-bottom: 10px;
-    }
-
-    button {
-      padding: 10px 16px;
-      font-size: 16px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-      cursor: pointer;
-      background: #f5f5f5;
-    }
-
-    #map {
-      height: 80vh;
-      width: 100%;
+    body { margin:0; font-family: Arial; }
+    h2 { text-align:center; padding:10px; }
+    #map { height: 60vh; }
+    #list { padding:10px; }
+    .card {
+      border:1px solid #ddd;
+      margin-bottom:8px;
+      padding:10px;
+      border-radius:6px;
     }
   </style>
 </head>
 <body>
 
-  <h2>🍛 কাছাকাছি বিরিয়ানি পয়েন্ট</h2>
+<h2>🍛 কাছাকাছি বিরিয়ানি পয়েন্ট</h2>
+<button onclick="getMyLocation()">📍 আমার কাছাকাছি</button>
 
-  <div class="btn-wrap">
-    <button onclick="getMyLocation()">📍 আমার কাছাকাছি</button>
-  </div>
+<div id="map"></div>
+<div id="list"></div>
 
-  <div id="map"></div>
-
-  <!-- Leaflet JS -->
-  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-
-  <!-- Map Script -->
-  <script>
-    let map;
-    let userMarker;
-
-    // Default map (Dhaka)
-    map = L.map("map").setView([23.8103, 90.4125], 12);
-
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      attribution: "© OpenStreetMap",
-    }).addTo(map);
-
-    function getMyLocation() {
-      if (!navigator.geolocation) {
-        alert("Geolocation সাপোর্ট করে না");
-        return;
-      }
-
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const lat = position.coords.latitude;
-          const lng = position.coords.longitude;
-
-          if (userMarker) {
-            map.removeLayer(userMarker);
-          }
-
-          userMarker = L.marker([lat, lng])
-            .addTo(map)
-            .bindPopup("📍 আপনি এখানে আছেন")
-            .openPopup();
-
-          map.setView([lat, lng], 15);
-        },
-        () => {
-          alert("লোকেশন পাওয়া যায়নি");
-        }
-      );
-    }
-  </script>
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script type="module" src="js/map.js"></script>
 
 </body>
 </html>
