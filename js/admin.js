@@ -1,44 +1,39 @@
 import { db } from "./firebase.js";
+
 import {
   collection,
-  getDocs,
-  deleteDoc,
-  doc,
-  orderBy,
-  query
+  addDoc,
+  serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-const reportsDiv = document.getElementById("reports");
+const form = document.getElementById("addForm");
 
-async function loadReports() {
-  reportsDiv.innerHTML = "Loading...";
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
 
-  const q = query(
-    collection(db, "reports"),
-    orderBy("time", "desc")
-  );
+  const name = document.getElementById("name").value.trim();
+  const address = document.getElementById("address").value.trim();
+  const lat = parseFloat(document.getElementById("lat").value);
+  const lng = parseFloat(document.getElementById("lng").value);
 
-  const snap = await getDocs(q);
-  reportsDiv.innerHTML = "";
+  if (!name || !address || isNaN(lat) || isNaN(lng)) {
+    alert("সব তথ্য সঠিকভাবে দিন");
+    return;
+  }
 
-  snap.forEach((r) => {
-    const d = r.data();
+  try {
+    await addDoc(collection(db, "points"), {
+      name,
+      address,
+      lat,
+      lng,
+      approved: true,
+      createdAt: serverTimestamp()
+    });
 
-    const div = document.createElement("div");
-    div.className = "card";
-    div.innerHTML = `
-      <b>Point ID:</b> ${d.pointId}<br>
-      <b>Reason:</b> ${d.reason}<br><br>
-      <button onclick="deleteReport('${r.id}')">🗑 Delete</button>
-    `;
-    reportsDiv.appendChild(div);
-  });
-}
-
-window.deleteReport = async function (id) {
-  if (!confirm("Delete report?")) return;
-  await deleteDoc(doc(db, "reports", id));
-  loadReports();
-};
-
-loadReports();
+    alert("✅ Biriyani point যোগ হয়েছে");
+    form.reset();
+  } catch (err) {
+    alert("❌ Error: " + err.message);
+  }
+});
